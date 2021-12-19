@@ -4,6 +4,8 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "synch.h"
+#include "fixed_point.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -93,6 +95,9 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
+   //int64_t sleep_ticks;
+
+
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -100,6 +105,12 @@ struct thread
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
+
+    int base_priority;                  /* Base priority. */
+    struct list locks;                   Locks that the thread is holding. 
+    struct lock *lock_waiting; 
+    int nice;                           /* Niceness. */
+    fixed_t recent_cpu;          /* The lock that the thread is waiting for. */
   };
 
 /* If false (default), use round-robin scheduler.
@@ -119,6 +130,7 @@ tid_t thread_create (const char *name, int priority, thread_func *, void *);
 void thread_block (void);
 void thread_unblock (struct thread *);
 
+
 struct thread *thread_current (void);
 tid_t thread_tid (void);
 const char *thread_name (void);
@@ -137,5 +149,15 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+bool thread_cmp_priority (const struct list_elem *, const struct list_elem *, void *);
+void thread_hold_the_lock (struct lock *);
+void thread_remove_lock (struct lock *);
+void thread_donate_priority (struct thread *);
+void thread_update_priority (struct thread *);
+void thread_mlfqs_increase_recent_cpu_by_one (void);
+void thread_mlfqs_update_priority (struct thread *);
+void thread_mlfqs_update_load_avg_and_recent_cpu (void);
+
+
 
 #endif /* threads/thread.h */
