@@ -92,6 +92,8 @@ struct thread
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
 
+    int64_t wakeup_tick;
+
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
@@ -106,11 +108,6 @@ struct thread
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
 
-    int base_priority;                  /* Base priority. */
-    struct list locks;                   Locks that the thread is holding. 
-    struct lock *lock_waiting; 
-    int nice;                           /* Niceness. */
-    fixed_t recent_cpu;          /* The lock that the thread is waiting for. */
   };
 
 /* If false (default), use round-robin scheduler.
@@ -120,6 +117,7 @@ extern bool thread_mlfqs;
 
 void thread_init (void);
 void thread_start (void);
+
 
 void thread_tick (void);
 void thread_print_stats (void);
@@ -149,15 +147,9 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
-bool thread_cmp_priority (const struct list_elem *, const struct list_elem *, void *);
-void thread_hold_the_lock (struct lock *);
-void thread_remove_lock (struct lock *);
-void thread_donate_priority (struct thread *);
-void thread_update_priority (struct thread *);
-void thread_mlfqs_increase_recent_cpu_by_one (void);
-void thread_mlfqs_update_priority (struct thread *);
-void thread_mlfqs_update_load_avg_and_recent_cpu (void);
 
-
+bool thread_wakeup_tick_compare(const struct list_elem *a);
+void thread_sleep(int64_t);
+void thread_wakeup(int64_t);
 
 #endif /* threads/thread.h */

@@ -67,8 +67,7 @@ timer_calibrate (void)
 }
 
 /* Returns the number of timer ticks since the OS booted. */
-int64_t
-timer_ticks (void) 
+int64_t timer_ticks (void) 
 {
   enum intr_level old_level = intr_disable ();
   int64_t t = ticks;
@@ -93,12 +92,10 @@ timer_sleep (int64_t ticks)
 
   ASSERT (intr_get_level () == INTR_ON);
   
-  enum intr_level old_level;
-  old_level = intr_disable();
+  // enum intr_level old_level;
+  // old_level = intr_disable();
 
-  thread_current()->sleep_ticks = start + ticks;
-  thread_insert_sleep_list();
-  thread_block();
+  thread_sleep (start + ticks);
   
   intr_set_level(old_level);
 }
@@ -178,15 +175,8 @@ static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
-  if (thread_mlfqs)
-  {
-    thread_mlfqs_increase_recent_cpu_by_one ();
-    if (ticks % TIMER_FREQ == 0)
-      thread_mlfqs_update_load_avg_and_recent_cpu ();
-    else if (ticks % 4 == 0)
-      thread_mlfqs_update_priority (thread_current ());
-  }
   thread_tick ();
+  thread_wakeup(ticks);
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
